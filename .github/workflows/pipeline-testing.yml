@@ -35,5 +35,5 @@ jobs:
               run: php artisan key:generate
         
             - name: Run migrations
-              run: php artisan migrate --env=testing
+              run: php artisan test
     
