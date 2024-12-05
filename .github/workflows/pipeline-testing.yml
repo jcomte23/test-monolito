@@ -33,6 +33,17 @@ jobs:
         
             - name: Generate application key
               run: php artisan key:generate
+
+            - name: Instalar node js para nuestro ubut
+              uses: actions/setup-node@v3
+              with:
+                node-version: '22'
+      
+            - name: instalamos los paquetes de node js
+              run: npm install
+      
+            - name: Compilamos el fronten
+              run: npm run build
         
             - name: Run migrations
               run: php artisan test
