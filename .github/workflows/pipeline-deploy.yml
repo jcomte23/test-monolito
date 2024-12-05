@@ -1,0 +1,49 @@
+name : "Despliege de la aplicacion"
+
+on:
+    push:
+        branches: 
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    Checkout-Database:
+        runs-on: ubuntu-latest
+
+        steps:
+        # 1. Configurar el repositorio
+        - name: Checkout repository
+          uses: actions/checkout@v3
+
+        # 2. Configurar PHP
+        - name: Setup PHP
+          uses: shivammathur/setup-php@v2
+          with:
+            php-version: '8.2' # Asegúrate de usar la versión de PHP compatible con tu proyecto Laravel
+            extensions: pdo_mysql # Extensión necesaria para conectarse a MySQL
+            ini-values: |
+              memory_limit=-1
+            tools: composer
+
+        # 3. Instalar dependencias de Laravel
+        - name: Install dependencies
+          run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+
+        # 4. Configurar las variables de entorno
+        - name: Set environment variables
+          run: cp .env.example .env
+        # Usa variables de entorno seguras de GitHub Secrets para la conexión a la base de datos
+        - name: Update environment file
+          run: |
+            sed -i "s|DB_CONNECTION=mysql|DB_CONNECTION=${{ secrets.DB_CONNECTION }}|g" .env
+            sed -i "s|DB_HOST=127.0.0.1|DB_HOST=${{ secrets.DB_HOST }}|g" .env
+            sed -i "s|DB_PORT=3306|DB_PORT=${{ secrets.DB_PORT }}|g" .env
+            sed -i "s|DB_DATABASE=laravel|DB_DATABASE=${{ secrets.DB_DATABASE }}|g" .env
+            sed -i "s|DB_USERNAME=root|DB_USERNAME=${{ secrets.DB_USERNAME }}|g" .env
+            sed -i "s|DB_PASSWORD=|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|g" .env
+
+        # 5. Probar la conexión a la base de datos
+        - name: Validate database connection
+          run: php artisan migrate:status
